@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Secret Map of Magic Forest — Present Continuous Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#1B2A4A; --night2:#24365E; --fern:#173B33; --fern2:#2E5E4E;
+  --gold:#FFC94D; --gold2:#FFB300; --paper:#FFF6E0; --ink:#1F2937;
+  --now:#5BD0C8; --later:#FF9F45; --berry:#FF6B8A; --mist:#EAF4F4;
+  --disp:'Baloo 2','Comic Sans MS','Segoe UI',system-ui,sans-serif;
+  --body:'Nunito','Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--body); color:var(--mist);
+  background:radial-gradient(1200px 700px at 70% -10%, var(--night2), var(--night) 55%, #111A33 100%);
+  min-height:100%;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+button:focus-visible,[tabindex]:focus-visible{outline:4px solid var(--gold);outline-offset:2px;border-radius:12px}
+
+/* ---------- HUD ---------- */
+#hud{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+  padding:10px 16px;background:rgba(16,24,48,.82);backdrop-filter:blur(6px);
+  border-bottom:2px solid rgba(255,201,77,.35);
+}
+#dots{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(234,244,244,.22)}
+.dot.done{background:var(--now)}
+.dot.cur{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+#starBox{font-family:var(--disp);font-weight:800;font-size:20px;color:var(--gold);white-space:nowrap}
+#starBox.pop{animation:pop .4s}
+#soundBtn{font-size:22px;line-height:1}
+#timedial{display:flex;gap:8px;font-size:20px;align-items:center}
+#timedial .t{opacity:.3;filter:grayscale(1);transition:.4s}
+body.night #timedial .t-moon{opacity:1;filter:none;text-shadow:0 0 12px var(--now)}
+body.plan #timedial .t-cal{opacity:1;filter:none;text-shadow:0 0 12px var(--later)}
+
+/* ---------- Stage / screens ---------- */
+#stage{max-width:960px;margin:0 auto;padding:18px 16px 60px}
+.screen{display:none;animation:fadein .45s}
+.screen.on{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,6vw,54px);line-height:1.1;
+   color:var(--gold);text-shadow:0 3px 0 #8a5a00, 0 8px 24px rgba(255,201,77,.35)}
+h2{font-family:var(--disp);font-weight:800;font-size:clamp(22px,4.4vw,34px);color:var(--mist)}
+.qprog{font-family:var(--disp);font-weight:800;color:var(--gold);font-size:18px;margin:2px 0 6px}
+.sub{font-size:clamp(16px,2.6vw,21px);color:var(--mist);opacity:.95}
+
+.scene{
+  position:relative;border-radius:22px;overflow:hidden;margin:16px 0;
+  min-height:210px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#22345C 0%, #2E5E4E 78%, #1C4237 100%);
+  border:3px solid rgba(255,201,77,.4);box-shadow:0 14px 40px rgba(0,0,0,.45);
+}
+.scene.sun{background:linear-gradient(180deg,#FFD98A 0%, #FFAB5E 55%, #2E5E4E 100%)}
+.scene .props{font-size:clamp(44px,9vw,84px);letter-spacing:8px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.4))}
+.scene .caption{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:15px;color:var(--mist);text-shadow:0 2px 4px #000}
+.trees{position:absolute;bottom:-6px;left:0;right:0;text-align:center;font-size:34px;letter-spacing:-4px;opacity:.85}
+.stars-bg{position:absolute;inset:0;pointer-events:none}
+.stars-bg i{position:absolute;font-style:normal;font-size:12px;animation:twinkle 2.6s infinite}
+@keyframes twinkle{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+
+/* Ollie */
+.ollie{display:flex;gap:14px;align-items:flex-start;margin:14px 0}
+.ollie .ava{font-size:56px;background:radial-gradient(circle at 35% 30%, #6B7FD7, #2E3A6E);
+  border:3px solid var(--gold);border-radius:50%;width:92px;height:92px;display:flex;align-items:center;justify-content:center;flex:none;
+  animation:bob 2.6s ease-in-out infinite}
+.ollie .ava.spin{animation:spin .7s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.bubble{position:relative;background:var(--paper);color:var(--ink);border-radius:16px;padding:12px 16px;
+  font-size:clamp(16px,2.6vw,20px);font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.35);margin-bottom:8px}
+.bubble::before{content:"";position:absolute;left:-10px;top:18px;border:10px solid transparent;border-right-color:var(--paper)}
+
+/* word helpers + clue words */
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.chip{background:rgba(234,244,244,.1);border:2px solid rgba(234,244,244,.4);border-radius:999px;
+  padding:7px 14px;font-size:16px;font-weight:700}
+.chip b{color:var(--gold)}
+.w-now{color:var(--now);font-weight:800;text-shadow:0 0 14px rgba(91,208,200,.8)}
+.w-later{color:var(--later);font-weight:800;text-shadow:0 0 14px rgba(255,159,69,.8)}
+
+/* generic big button */
+.go{display:inline-block;font-family:var(--disp);font-weight:800;font-size:clamp(18px,3vw,24px);
+  background:linear-gradient(180deg,var(--gold),var(--gold2));color:#4A3000;
+  border-radius:999px;padding:14px 30px;margin-top:14px;box-shadow:0 6px 0 #a97a10, 0 12px 24px rgba(0,0,0,.4);
+  transition:transform .12s}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 #a97a10}
+[hidden]{display:none !important}
+
+/* MCQ */
+.opts{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}
+.opt{flex:1 1 160px;background:var(--paper);color:var(--ink);border-radius:18px;padding:16px 12px;
+  font-size:clamp(17px,2.8vw,21px);font-weight:800;font-family:var(--disp);
+  border:3px solid transparent;box-shadow:0 8px 20px rgba(0,0,0,.35);transition:transform .12s}
+.opt .em{display:block;font-size:44px;margin-bottom:6px}
+.opt:hover{transform:translateY(-3px)}
+.opt.ok{border-color:#3AA655;background:#E9F9EC}
+.opt.no{animation:shake .45s;border-color:var(--berry)}
+.card.no{animation:shake .45s;border-color:var(--berry)}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+/* feedback */
+.feedback{border-radius:14px;padding:12px 16px;font-size:clamp(15px,2.5vw,19px);font-weight:800;margin:10px 0;display:none}
+.feedback.show{display:block;animation:fadein .3s}
+.feedback.good{background:#DFF6E4;color:#1E6B33;border:3px solid #3AA655}
+.feedback.bad{background:#FFE3E9;color:#A32043;border:3px solid var(--berry)}
+
+/* grammar gem */
+.gem{background:linear-gradient(180deg,#FFF6E0,#FFE9B8);color:var(--ink);border:3px dashed var(--gold2);
+  border-radius:18px;padding:14px 18px;margin:14px 0;font-weight:700;font-size:clamp(15px,2.5vw,19px)}
+.gem .rule{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.gem .rule span{background:#fff;border:2px solid var(--gold2);border-radius:999px;padding:6px 12px}
+
+/* fill-in (stage 2) */
+.sentence{background:var(--paper);color:var(--ink);border-radius:16px;padding:16px 18px;margin:12px 0;
+  font-size:clamp(19px,3.4vw,26px);font-weight:800;font-family:var(--disp);text-align:center}
+.blank{display:inline-block;min-width:96px;border-bottom:5px solid var(--berry);color:var(--berry);
+  text-align:center;border-radius:8px 8px 0 0;cursor:pointer;padding:0 8px}
+.blank.good{color:#1E6B33;border-color:#3AA655;animation:pop .4s}
+.blank.bad{animation:shake .45s;border-color:var(--berry)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+.tokens{display:flex;gap:14px;justify-content:center;margin:12px 0}
+.token{font-family:var(--disp);font-weight:800;font-size:24px;color:#4A3000;
+  background:linear-gradient(180deg,var(--gold),var(--gold2));border-radius:999px;padding:12px 30px;
+  box-shadow:0 5px 0 #a97a10;touch-action:none;user-select:none}
+.token.selected{outline:4px solid var(--now);transform:translateY(-4px)}
+.token.locked{opacity:.45;box-shadow:none}
+.token.ghost{position:fixed;z-index:99;pointer-events:none;opacity:.85;transform:translate(0,0)}
+
+/* sorting (stage 3) */
+.tray{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0;min-height:64px}
+.card{flex:1 1 46%;max-width:300px;background:var(--paper);color:var(--ink);border-radius:14px;
+  border:3px solid transparent;padding:10px 12px;font-weight:800;font-size:clamp(14px,2.2vw,17px);
+  box-shadow:0 6px 16px rgba(0,0,0,.35);touch-action:none;user-select:none;text-align:left}
+.card .em{font-size:24px;margin-right:6px}
+.card.selected{outline:4px solid var(--now);transform:translateY(-4px)}
+.card.locked{opacity:.9;cursor:default}
+.card.ghost{position:fixed;z-index:99;pointer-events:none;opacity:.85}
+.baskets{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0}
+.basket{flex:1 1 240px;min-height:190px;border-radius:20px;border:4px dashed;padding:12px;text-align:center}
+.basket h3{font-family:var(--disp);font-size:24px;margin-bottom:6px}
+.basket .bem{font-size:44px}
+.basket .cardsin{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.basket .cardsin .card{max-width:none;font-size:14px}
+.basket.nowb{border-color:var(--now);background:rgba(91,208,200,.12)}
+.basket.laterb{border-color:var(--later);background:rgba(255,159,69,.12)}
+.sortcount{font-family:var(--disp);font-weight:800;font-size:20px;color:var(--gold)}
+
+/* doors (stage 4) */
+.doorbox{text-align:center;font-size:clamp(70px,14vw,120px);line-height:1;margin:6px 0;transition:.4s}
+.doorbox.open{animation:pop .6s}
+.timedoor{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.tdoor{font-family:var(--disp);font-weight:800;font-size:clamp(18px,3vw,24px);border-radius:18px;
+  padding:16px 26px;border:4px solid;transition:transform .12s}
+.tdoor.n{color:var(--now);border-color:var(--now);background:rgba(91,208,200,.14)}
+.tdoor.l{color:var(--later);border-color:var(--later);background:rgba(255,159,69,.14)}
+.tdoor:hover{transform:translateY(-3px)}
+.tdoor.ok{background:#E9F9EC;border-color:#3AA655;color:#1E6B33}
+.tdoor.no{animation:shake .45s}
+.verbs{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.verb{font-family:var(--disp);font-weight:800;font-size:clamp(16px,2.8vw,21px);background:var(--paper);
+  color:var(--ink);border-radius:999px;padding:12px 22px;box-shadow:0 5px 14px rgba(0,0,0,.35);animation:fadein .3s}
+.verb.ok{background:#E9F9EC;border:3px solid #3AA655}
+.verb.no{animation:shake .45s;border:3px solid var(--berry)}
+.meter{font-size:26px;letter-spacing:2px;color:var(--gold);font-family:var(--disp);font-weight:800}
+
+/* victory */
+.badge{display:inline-block;background:linear-gradient(180deg,#FFF6E0,#FFE9B8);color:var(--ink);
+  border:4px solid var(--gold);border-radius:22px;padding:18px 26px;margin:14px 0;
+  font-family:var(--disp);font-weight:800;font-size:clamp(20px,3.6vw,28px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.center{text-align:center}
+
+/* confetti */
+.confetti{position:fixed;top:-16px;font-size:18px;z-index:98;animation:fall linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.9}}
+
+@media (max-width:560px){
+  #dots{display:none}
+  .card{flex:1 1 100%}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition:none !important}
+}
+</style>
+</head>
+<body class="night">
+
+<header id="hud">
+  <div id="dots" aria-hidden="true"></div>
+  <div id="timedial" title="NOW ↔ LATER"><span class="t t-moon">🌙</span><span class="t t-cal">📅</span></div>
+  <div id="starBox" aria-live="polite">⭐ <span id="starCount">0</span></div>
+  <button id="soundBtn" aria-label="Sound on or off" title="Sound">🔊</button>
+</header>
+
+<main id="stage">
+
+  <!-- ============ STAGE 1 ============ -->
+  <section class="screen" id="s11">
+    <div class="scene">
+      <div class="stars-bg"></div>
+      <div class="props">🗺️✨</div>
+      <div class="trees">🌲🌲🌳🌲🌲🌳🌲</div>
+      <div class="caption">The Magic Forest, long ago...</div>
+    </div>
+    <div class="center">
+      <h1>The Secret Map<br>of Magic Forest!</h1>
+      <p class="sub">A Grammar Adventure for Heroes!</p>
+      <button class="go" data-next>▶ START THE ADVENTURE!</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s12">
+    <h2>Meet your guide!</h2>
+    <div class="scene" style="min-height:200px"><div class="stars-bg"></div><div class="props">🦉🎒</div><div class="trees">🌲🌳🌲</div></div>
+    <div class="ollie">
+      <div class="ava" id="ollieAva" role="button" tabindex="0" aria-label="Tap Ollie">🦉</div>
+      <div>
+        <div class="bubble">Hello, hero! I am <b>Ollie</b>!</div>
+        <div class="bubble">The <b>Golden Star</b> ⭐ is lost in the Magic Forest. Let's find it!</div>
+        <div class="bubble" id="hoo" hidden>Hoo hoo! ✨</div>
+      </div>
+    </div>
+    <button class="go" data-next>Next ▶</button>
+  </section>
+
+  <section class="screen" id="s13">
+    <h2>Warm-up! 🔥</h2>
+    <div class="qprog" id="mcqProg">Question 1 of 32</div>
+    <div class="scene" style="min-height:190px">
+      <div class="stars-bg"></div>
+      <div class="props" id="mcqProps">🗺️</div>
+      <div class="caption" id="mcqCap">Something old and gold...</div>
+    </div>
+    <div class="bubble" id="mcqQ">Look! What is this?</div>
+    <div class="opts" id="mcqOpts"></div>
+    <div class="feedback good" id="mcqFbG"></div>
+    <div class="feedback bad" id="mcqFbB"></div>
+    <button class="go" id="mcqNav" hidden>Next question ▶</button>
+  </section>
+
+  <section class="screen" id="s15">
+    <h2>Your mission, hero!</h2>
+    <div class="ollie">
+      <div class="ava">🦉</div>
+      <div class="bubble">First, we <b class="w-now">WATCH</b> the forest <b class="w-now">NOW</b>. 🌙<br>Then, we make our plan for <b class="w-later">TOMORROW</b>! 📅</div>
+    </div>
+    <div class="chips">
+      <span class="chip">now = <b lang="tr">şimdi</b></span>
+      <span class="chip">tomorrow = <b lang="tr">yarın</b></span>
+    </div>
+    <button class="go" data-next>To the telescope! 🔭</button>
+  </section>
+
+  <!-- ============ STAGE 2 ============ -->
+  <section class="screen" id="s21">
+    <h2>Stage 2: Look NOW! 🔭</h2>
+    <div class="ollie">
+      <div class="ava">🦉</div>
+      <div class="bubble">Shhh! Look through the magic telescope! It is night. Watch what is happening <b class="w-now">NOW</b>!</div>
+    </div>
+    <div class="gem">
+      📖 <b>Magic words:</b> we say <b>is / are + verb-ing</b>
+      <div class="rule">
+        <span>1 friend → <b>is</b> 🐦</span>
+        <span>2+ friends → <b>are</b> 🐦🐦</span>
+      </div>
+    </div>
+    <div class="chips"><span class="chip"><b class="w-now">NOW</b> = happening right now! = <b lang="tr">şimdi</b></span></div>
+    <button class="go" data-next>Look! 🔭</button>
+  </section>
+
+  <section class="screen" id="s22">
+    <h2>Watch NOW! 🔭</h2>
+    <div class="qprog" id="fillProg">Question 1 of 33</div>
+    <div class="scene" style="min-height:170px">
+      <div class="stars-bg"></div>
+      <div class="props" id="fillProps">🐦💨</div>
+      <div class="caption" id="fillCap">One blue bird over the trees</div>
+    </div>
+    <div class="bubble" id="fillSay">WOW! Look! One bird! It is flying!</div>
+    <div class="sentence" id="fillSent"></div>
+    <div class="tokens">
+      <button class="token" data-w="is">is</button>
+      <button class="token" data-w="are">are</button>
+    </div>
+    <div class="feedback good" id="fillFbG"></div>
+    <div class="feedback bad" id="fillFbB"></div>
+    <button class="go" id="fillNav" hidden>Next question ▶</button>
+  </section>
+
+  <section class="screen" id="s25">
+    <h2>NOW-check! ✅</h2>
+    <div class="gem">💡 <b>NOW</b> words tell us: it is happening <b>right now</b>!</div>
+    <div class="chips">
+      <span class="chip w-now">now</span>
+      <span class="chip w-now">Look!</span>
+      <span class="chip w-now">Listen!</span>
+      <span class="chip w-now">Shhh!</span>
+    </div>
+    <button class="go" data-next>To the plan! 📅</button>
+  </section>
+
+  <!-- ============ STAGE 3 ============ -->
+  <section class="screen" id="s31">
+    <h2>Stage 3: Our BIG plan! 📅</h2>
+    <div class="scene">
+      <div style="display:flex;width:100%;justify-content:space-around;align-items:center">
+        <div class="props" style="letter-spacing:2px">🌙🕐</div>
+        <div class="props" style="letter-spacing:2px">📅☀️</div>
+      </div>
+      <div class="caption">NOW (moon) &nbsp;•&nbsp; TOMORROW (sun)</div>
+    </div>
+    <div class="ollie">
+      <div class="ava">🦉</div>
+      <div class="bubble">The map is ready! Now, <b>our plan is BIG</b>! Our plan is for <b class="w-later">TOMORROW</b>!</div>
+    </div>
+    <div class="bubble">✅ Tomorrow, we <b>are following</b> the map. 🗺️<br>✅ Tomorrow, we <b>are opening</b> the magic door. 🚪<br>✅ Next week, we <b>are finding</b> the Golden Star! ⭐</div>
+    <div class="bubble">See? <b>SAME</b> words — is/are + verb-ing. But <b class="w-later">TOMORROW</b> means... it is our PLAN! <b class="w-later">LATER</b>!</div>
+    <div class="chips">
+      <span class="chip">tomorrow = <b lang="tr">yarın</b></span>
+      <span class="chip">next week = <b lang="tr">gelecek hafta</b></span>
+    </div>
+    <button class="go" data-next>Next ▶</button>
+  </section>
+
+  <section class="screen" id="s32">
+    <h2>The Magic Word Box 🪄</h2>
+    <div class="baskets">
+      <div class="basket nowb">
+        <h3 class="w-now">NOW 🕐</h3>
+        <p style="color:var(--ink);background:var(--paper);border-radius:12px;padding:10px;font-weight:800">“The bird is flying.”</p>
+        <p style="margin-top:8px;font-weight:700">Happening this second!</p>
+        <div class="chips" style="justify-content:center"><span class="chip w-now">now</span><span class="chip w-now">Look!</span><span class="chip w-now">Listen!</span></div>
+      </div>
+      <div class="basket laterb">
+        <h3 class="w-later">LATER 📅</h3>
+        <p style="color:var(--ink);background:var(--paper);border-radius:12px;padding:10px;font-weight:800">“Tomorrow, we are opening the door.”</p>
+        <p style="margin-top:8px;font-weight:700">Our plan! It is fixed!</p>
+        <div class="chips" style="justify-content:center"><span class="chip w-later">tomorrow</span><span class="chip w-later">next week</span></div>
+      </div>
+    </div>
+    <div class="center"><p style="font-family:var(--disp);font-size:clamp(22px,4.5vw,32px);color:var(--gold);font-weight:800">SAME grammar. DIFFERENT time! 🪄</p></div>
+    <button class="go" data-next>Play the sorting game! 🧺</button>
+  </section>
+
+  <section class="screen" id="s33">
+    <h2>Sort the cards! 🧺</h2>
+    <div class="qprog"><span class="sortcount" id="sortCount">0/36</span> · <span class="sortcount" id="sortRound">Round 1 of 6</span></div>
+    <div class="bubble">Sort the cards! <b class="w-now">NOW</b> or <b class="w-later">LATER</b>? Drag each card to the right basket — or tap a card, then tap a basket!</div>
+    <div class="tray" id="sortTray"></div>
+    <div class="baskets">
+      <div class="basket nowb" data-a="now">
+        <div class="bem">🕐🌙</div><h3 class="w-now">NOW</h3>
+        <div class="cardsin"></div>
+      </div>
+      <div class="basket laterb" data-a="later">
+        <div class="bem">📅🚀</div><h3 class="w-later">LATER</h3>
+        <div class="cardsin"></div>
+      </div>
+    </div>
+    <div class="feedback good" id="sortFbG"></div>
+    <div class="feedback bad" id="sortFbB"></div>
+    <button class="go" id="sortNav" hidden>To the challenge! 🔥</button>
+  </section>
+
+  <!-- ============ STAGE 4 ============ -->
+  <section class="screen" id="s41">
+    <h2>🔥 Which Way Do You Go? 🔥</h2>
+    <div class="center"><div class="meter" id="meter">⭐ × 0</div></div>
+    <div class="ollie">
+      <div class="ava">🦉</div>
+      <div class="bubble"><b>33 magic doors</b>. 33 challenges. Answer RIGHT to open the way! Are you ready, hero?!</div>
+    </div>
+    <div class="gem">
+      <b>How to play:</b>
+      <div class="rule">
+        <span>1️⃣ Find the clue word</span>
+        <span>2️⃣ Choose the door: 🕐 NOW or 📅 LATER</span>
+        <span>3️⃣ Choose the correct verb!</span>
+      </div>
+    </div>
+    <button class="go" data-next>Open Door 1! 🚪</button>
+  </section>
+
+  <section class="screen" id="s42">
+    <h2>Which Way? 🚪</h2>
+    <div class="qprog" id="doorProg">Door 1 of 33 · <span class="meter">⭐ × 0</span></div>
+    <div class="doorbox" id="doorBox">🚪</div>
+    <div class="scene" style="min-height:150px">
+      <div class="stars-bg"></div>
+      <div class="props" id="doorProps">🐦🎵</div>
+      <div class="caption" id="doorCap">A speech bubble says: “Listen!”</div>
+    </div>
+    <div class="sentence" id="doorSent"></div>
+    <div class="timedoor">
+      <button class="tdoor n" data-t="NOW">🕐 NOW</button>
+      <button class="tdoor l" data-t="LATER">📅 LATER</button>
+    </div>
+    <div class="verbs" id="doorVerbs" hidden></div>
+    <div class="feedback bad" id="doorFbT"></div>
+    <div class="feedback bad" id="doorFbV"></div>
+    <div class="feedback good" id="doorFbG"></div>
+    <button class="go" id="doorNav" hidden>Next door ▶</button>
+  </section>
+
+  <section class="screen" id="s45">
+    <div class="center">
+      <div class="doorbox open">🏆🌟</div>
+      <h1>YOU DID IT!</h1>
+      <div class="ollie" style="text-align:left">
+        <div class="ava">🦉</div>
+        <div class="bubble">HOO HOO! You did it! You are a <b>PRESENT CONTINUOUS HERO</b>! 🏆</div>
+      </div>
+      <div class="badge">⭐ Present Continuous Explorer ⭐</div>
+      <p class="sub" id="finalStars"></p>
+      <div class="chips" style="justify-content:center">
+        <span class="chip"><b class="w-now">NOW</b> = is/are + verb-ing → happening now!</span>
+        <span class="chip"><b class="w-later">LATER</b> = is/are + verb-ing → our plan!</span>
+      </div>
+      <button class="go" id="replay">▶ PLAY AGAIN!</button>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const w=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ================= QUESTION BANKS ================= */
+/* Stage 1 — visual MCQ, 32 questions (first two are the original story beats) */
+const MCQ=[
+{em:"🗺️",cap:"Something old and gold...",q:"Look! What is this?",opts:[["🍰","a cake"],["🗺️","a map",1],["⚽","a ball"]],ok:"YES! It's a MAGIC map! +10 stars! ⭐",no:"Oops! Look again — it shows us the way! It's a MAP!"},
+{em:"🌳⭐🐦",cap:"Night in the Magic Forest",q:"What can you see in the Magic Forest?",opts:[["🌳⭐","trees and stars",1],["🚗🚌","cars and buses"],["🍎🧃","apples and juice"]],ok:"WOW! You can see the Magic Forest! +10 stars! ⭐",no:"Hmm! Look up — stars! Look around — trees!"},
+{em:"🐕",cap:"A furry friend",q:"What is this?",opts:[["🐕","a dog",1],["🦆","a duck"],["🎎","a doll"]],no:"It says “woof”! Look again — it's a dog!"},
+{em:"🐈",cap:"Another friend",q:"What is this?",opts:[["🐈","a cat",1],["🐄","a cow"],["🧢","a cap"]],no:"It says “meow”! Look again — it's a cat!"},
+{em:"🐟",cap:"In the river",q:"What is this?",opts:[["🐟","a fish",1],["🐸","a frog"],["🦊","a fox"]],no:"Glub glub! Look again — it's a fish!"},
+{em:"🐸",cap:"On a leaf",q:"What is this?",opts:[["🐸","a frog",1],["🐟","a fish"],["🐦","a bird"]],no:"Boing boing! Look again — it's a frog!"},
+{em:"🍎",cap:"Yum! A fruit",q:"What is this?",opts:[["🍎","an apple",1],["🍊","an orange"],["🧅","an onion"]],no:"It is red and sweet! Look again — an apple!"},
+{em:"🍌",cap:"A monkey's favorite",q:"What is this?",opts:[["🍌","a banana",1],["📕","a book"],["⚽","a ball"]],no:"Monkeys love it! Look again — a banana!"},
+{em:"📚",cap:"Open me and read",q:"What is this?",opts:[["📚","a book",1],["📦","a box"],["🍌","a banana"]],no:"You read it! Look again — a book!"},
+{em:"✏️",cap:"For writing",q:"What is this?",opts:[["✏️","a pencil",1],["🍕","a pizza"],["✈️","a plane"]],no:"You write with it! Look again — a pencil!"},
+{em:"🎒",cap:"You carry it to school",q:"What is this?",opts:[["🎒","a bag",1],["🛏️","a bed"],["📦","a box"]],no:"Your books live inside! Look again — a bag!"},
+{em:"🎈",cap:"Up in the air at parties",q:"What is this?",opts:[["🎈","a balloon",1],["⚽","a ball"],["🍌","a banana"]],no:"Full of air! Look again — a balloon!"},
+{em:"☀️",cap:"Way up high in the day",q:"What is this?",opts:[["☀️","the sun",1],["🌙","the moon"],["🌧️","the rain"]],no:"It is bright and yellow! Look again — the sun!"},
+{em:"🌙",cap:"Way up high at night",q:"What is this?",opts:[["🌙","the moon",1],["☀️","the sun"],["🌧️","the rain"]],no:"Hello, night sky! Look again — the moon!"},
+{em:"🌧️",cap:"Pitter-patter from the sky",q:"What is this?",opts:[["🌧️","the rain",1],["🏞️","a river"],["☀️","the sun"]],no:"Drop, drop, drop! Look again — the rain!"},
+{em:"🌳",cap:"Big and green",q:"What is this?",opts:[["🌳","a tree",1],["🌸","a flower"],["🚪","a door"]],no:"It is tall with green leaves! Look again — a tree!"},
+{em:"🌸",cap:"Small and pretty",q:"What is this?",opts:[["🌸","a flower",1],["🌳","a tree"],["🎂","a cake"]],no:"Smell it! Look again — a flower!"},
+{em:"🏠",cap:"We live here",q:"What is this?",opts:[["🏠","a house",1],["🐴","a horse"],["🎩","a hat"]],no:"Home sweet home! Look again — a house!"},
+{em:"🚪",cap:"Open it to come in",q:"What is this?",opts:[["🚪","a door",1],["🐕","a dog"],["🪟","a window"]],no:"Knock knock! Open it! Look again — a door!"},
+{em:"🔑",cap:"It opens a lock",q:"What is this?",opts:[["🔑","a key",1],["🥝","a kiwi"],["🪁","a kite"]],no:"It opens the door! Look again — a key!"},
+{em:"🎁",cap:"A surprise with a bow",q:"What is this?",opts:[["🎁","a present",1],["🍕","a pizza"],["✈️","a plane"]],no:"Open it on your birthday! Look again — a present!"},
+{em:"🎂",cap:"Sweet with candles",q:"What is this?",opts:[["🎂","a cake",1],["🐈","a cat"],["🧢","a cap"]],no:"Happy birthday! Look again — a cake!"},
+{em:"🧦",cap:"You wear them on your feet",q:"What are these?",opts:[["🧦","socks",1],["👟","shoes"],["👕","a shirt"]],ok:"YES! They're socks! +10 stars! ⭐",no:"Cozy for your feet! Look again — socks!"},
+{em:"👕",cap:"You wear it",q:"What is this?",opts:[["👕","a shirt",1],["👟","a shoe"],["🎩","a hat"]],no:"It goes on your body! Look again — a shirt!"},
+{em:"🥕",cap:"Bunnies love it",q:"What is this?",opts:[["🥕","a carrot",1],["🎂","a cake"],["🐈","a cat"]],no:"Orange and crunchy! Look again — a carrot!"},
+{em:"🥛",cap:"A white drink",q:"What is this?",opts:[["🥛","milk",1],["🧃","juice"],["🍵","tea"]],no:"It comes from cows! Look again — milk!"},
+{em:"🦆",cap:"It says quack",q:"What is this?",opts:[["🦆","a duck",1],["🐕","a dog"],["🎎","a doll"]],no:"Quack quack! Look again — a duck!"},
+{em:"🐄",cap:"It says moo",q:"What is this?",opts:[["🐄","a cow",1],["🐈","a cat"],["🐴","a horse"]],no:"Moo! It gives milk! Look again — a cow!"},
+{em:"🐴",cap:"It says neigh",q:"What is this?",opts:[["🐴","a horse",1],["🏠","a house"],["🐄","a cow"]],no:"Neigh! You can ride it! Look again — a horse!"},
+{em:"🍎🍌🥬",cap:"Three fruits and plants",q:"Which one is RED?",opts:[["🍎","the apple",1],["🍌","the banana"],["🥬","the lettuce"]],ok:"YES! The apple is red! +10 stars! ⭐",no:"Red like the apple! Look again!"},
+{em:"🍎🍌🥦",cap:"Three fruits and plants",q:"Which one is YELLOW?",opts:[["🍌","the banana",1],["🍎","the apple"],["🥦","the broccoli"]],ok:"YES! The banana is yellow! +10 stars! ⭐",no:"Yellow like the banana! Look again!"},
+{em:"🐸🐦🐰",cap:"Three animal friends",q:"Which one is GREEN?",opts:[["🐸","the frog",1],["🐦","the bird"],["🐰","the rabbit"]],ok:"YES! The frog is green! +10 stars! ⭐",no:"Green and it hops! Look again!"}
+];
+MCQ.forEach(it=>{ if(!it.ok) it.ok="YES! It's "+it.opts.find(o=>o[2])[1]+"! +10 stars! ⭐"; });
+
+/* Stage 2 — is/are fill-in, 33 questions (first three are the original story beats) */
+const FILL=[
+{em:"🐦💨",cap:"One blue bird over the trees",say:"WOW! Look! One bird! It is flying!",pre:"The bird ",post:" flying.",ans:"is",cw:"One bird",hint:"Count! Only ONE bird! One friend → IS. Try again!"},
+{em:"🐰🐰🌊",cap:"Two rabbits near the river",say:"Look! Two rabbit friends! Hop, hop!",pre:"The rabbits ",post:" jumping.",ans:"are",cw:"Two rabbits",hint:"Count: one rabbit, TWO rabbits! Two friends → ARE. Try again!"},
+{em:"✨🌟✨",cap:"The night sky is awake!",say:"Ooh! The sky is awake! Look up!",pre:"The stars ",post:" shining.",ans:"are",cw:"Many stars",hint:"So many stars! Many friends → ARE. Try again!"},
+{em:"🐕💨",cap:"A happy dog in the park",say:"Woof woof! Run, dog, run!",pre:"The dog ",post:" running.",ans:"is",cw:"One dog",hint:"Only ONE dog! One friend → IS. Try again!"},
+{em:"☀️😎",cap:"A beautiful morning",say:"Good morning, sun! Look!",pre:"The sun ",post:" shining.",ans:"is",cw:"One sun",hint:"Only ONE sun! One friend → IS. Try again!"},
+{em:"🐦🎶",cap:"A little concert",say:"Listen! A happy song!",pre:"The bird ",post:" singing.",ans:"is",cw:"One bird",hint:"Only ONE bird! One friend → IS. Try again!"},
+{em:"🐟💧",cap:"Hello, little fish!",say:"Glub glub! One little fish!",pre:"The fish ",post:" swimming.",ans:"is",cw:"One fish",hint:"Only ONE fish! One friend → IS. Try again!"},
+{em:"🦆",cap:"Waddle, waddle!",say:"Waddle, waddle! One duck!",pre:"The duck ",post:" walking.",ans:"is",cw:"One duck",hint:"Only ONE duck! One friend → IS. Try again!"},
+{em:"🐸",cap:"Boing! Boing!",say:"Boing! One frog! Hop!",pre:"The frog ",post:" jumping.",ans:"is",cw:"One frog",hint:"Only ONE frog! One friend → IS. Try again!"},
+{em:"🐱💤",cap:"Sweet dreams",say:"Shhh... one sleepy cat.",pre:"The cat ",post:" sleeping.",ans:"is",cw:"One cat",hint:"Only ONE cat! One friend → IS. Try again!"},
+{em:"🐴💨",cap:"Fast as the wind",say:"Neigh! Fast horse!",pre:"The horse ",post:" running.",ans:"is",cw:"One horse",hint:"Only ONE horse! One friend → IS. Try again!"},
+{em:"🐄🌿",cap:"Lunch time",say:"Moo! Lunch time for one cow!",pre:"The cow ",post:" eating.",ans:"is",cw:"One cow",hint:"Only ONE cow! One friend → IS. Try again!"},
+{em:"🌧️",cap:"Pitter-patter!",say:"Pitter-patter! Look at the sky!",pre:"The rain ",post:" falling.",ans:"is",cw:"The rain",hint:"The rain is ONE thing! → IS. Try again!"},
+{em:"🎈",cap:"Up, up, up!",say:"Up, up, up! One balloon!",pre:"The balloon ",post:" flying.",ans:"is",cw:"One balloon",hint:"Only ONE balloon! One friend → IS. Try again!"},
+{em:"👦⚽",cap:"Play time!",say:"Look! One boy! Play, play!",pre:"The boy ",post:" playing.",ans:"is",cw:"One boy",hint:"Only ONE boy! One friend → IS. Try again!"},
+{em:"👧📖",cap:"A good book",say:"Shhh... one girl. A good book!",pre:"The girl ",post:" reading.",ans:"is",cw:"One girl",hint:"Only ONE girl! One friend → IS. Try again!"},
+{em:"🚪✨",cap:"The magic door!",say:"Creak! Look! The magic door!",pre:"The door ",post:" opening.",ans:"is",cw:"The door",hint:"The door is ONE thing! → IS. Try again!"},
+{em:"🐝🌸",cap:"Buzz buzz",say:"Buzz! One little bee!",pre:"The bee ",post:" flying.",ans:"is",cw:"One bee",hint:"Only ONE bee! One friend → IS. Try again!"},
+{em:"🐦🐦🎶",cap:"A duet!",say:"Listen! TWO birds! A duet!",pre:"The birds ",post:" singing.",ans:"are",cw:"TWO birds",hint:"Count: TWO birds! 2+ friends → ARE. Try again!"},
+{em:"🐟🐟🐟",cap:"A fish family",say:"Glub glub glub! A fish family!",pre:"The fish ",post:" swimming.",ans:"are",cw:"Many fish",hint:"So many fish! 2+ friends → ARE. Try again!"},
+{em:"👦👦⚽",cap:"Game on!",say:"Look! Two boys! Kick, kick!",pre:"The boys ",post:" playing.",ans:"are",cw:"TWO boys",hint:"Count: TWO boys! 2+ friends → ARE. Try again!"},
+{em:"👧👧🎵",cap:"Dance party",say:"Dance, girls, dance!",pre:"The girls ",post:" dancing.",ans:"are",cw:"TWO girls",hint:"Count: TWO girls! 2+ friends → ARE. Try again!"},
+{em:"🐱🐱💤",cap:"Nap time x2",say:"Shhh... two sleepy cats.",pre:"The cats ",post:" sleeping.",ans:"are",cw:"TWO cats",hint:"Count: TWO cats! 2+ friends → ARE. Try again!"},
+{em:"🐶🐶💨",cap:"The big race",say:"Woof woof! Dogs race!",pre:"The dogs ",post:" running.",ans:"are",cw:"TWO dogs",hint:"Count: TWO dogs! 2+ friends → ARE. Try again!"},
+{em:"🐸🐸",cap:"Double boing!",say:"Boing! Boing! Two frogs!",pre:"The frogs ",post:" jumping.",ans:"are",cw:"TWO frogs",hint:"Count: TWO frogs! 2+ friends → ARE. Try again!"},
+{em:"🦆🦆🦆",cap:"In the water",say:"Quack! A duck family in the water!",pre:"The ducks ",post:" swimming.",ans:"are",cw:"Many ducks",hint:"So many ducks! 2+ friends → ARE. Try again!"},
+{em:"🐴🐴🌿",cap:"Two hungry horses",say:"Yum! Two hungry horses!",pre:"The horses ",post:" eating.",ans:"are",cw:"TWO horses",hint:"Count: TWO horses! 2+ friends → ARE. Try again!"},
+{em:"🍎🍎🍎",cap:"Plop! Plop!",say:"Plop! Apples down!",pre:"The apples ",post:" falling.",ans:"are",cw:"Many apples",hint:"So many apples! 2+ friends → ARE. Try again!"},
+{em:"🐝🐝🌸",cap:"Two busy bees",say:"Buzz buzz! Two bees!",pre:"The bees ",post:" flying.",ans:"are",cw:"TWO bees",hint:"Count: TWO bees! 2+ friends → ARE. Try again!"},
+{em:"🎈🎈",cap:"A party in the sky",say:"A party in the sky!",pre:"The balloons ",post:" flying.",ans:"are",cw:"TWO balloons",hint:"Count: TWO balloons! 2+ friends → ARE. Try again!"},
+{em:"🧒🧒⚽",cap:"Many friends!",say:"Play time! One, two, three... many friends!",pre:"The children ",post:" playing.",ans:"are",cw:"The children",hint:"Children = many friends! → ARE. Try again!"},
+{em:"🐢🐢",cap:"Slow and steady",say:"Slow and steady, little turtles!",pre:"The turtles ",post:" walking.",ans:"are",cw:"TWO turtles",hint:"Count: TWO turtles! 2+ friends → ARE. Try again!"},
+{em:"🐘🐘🎶",cap:"WOW! Amazing!",say:"WOW! Dancing elephants! Amazing!",pre:"The elephants ",post:" dancing.",ans:"are",cw:"TWO elephants",hint:"Count: TWO elephants! 2+ friends → ARE. Try again!"}
+];
+
+/* Stage 3 — NOW/LATER sorting, 36 cards (first six are the original story cards) */
+const SORT=[
+{t:"The rain is falling <b class=\"w-now\">now</b>.",em:"🌧️",ans:"now",clue:"now"},
+{t:"The rabbit is eating a carrot <b class=\"w-now\">now</b>.",em:"🐰",ans:"now",clue:"now"},
+{t:"The birds are singing <b class=\"w-now\">now</b>.",em:"🎵",ans:"now",clue:"now"},
+{t:"<b class=\"w-later\">Tomorrow</b>, we are opening the magic door.",em:"🚪",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Tomorrow</b>, Grandma Fox is making a big cake.",em:"🎂",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, we are finding the Golden Star!",em:"⭐",ans:"later",clue:"Next week"},
+{t:"The dog is sleeping <b class=\"w-now\">now</b>.",em:"🐕😴",ans:"now",clue:"now"},
+{t:"The birds are flying <b class=\"w-now\">now</b>.",em:"🐦",ans:"now",clue:"now"},
+{t:"<b class=\"w-now\">Look!</b> The cat is drinking milk.",em:"🐱🥛",ans:"now",clue:"Look!"},
+{t:"<b class=\"w-now\">Listen!</b> The phone is ringing.",em:"📞",ans:"now",clue:"Listen!"},
+{t:"The sun is shining <b class=\"w-now\">now</b>.",em:"☀️",ans:"now",clue:"now"},
+{t:"The boys are playing football <b class=\"w-now\">now</b>.",em:"⚽",ans:"now",clue:"now"},
+{t:"The girl is reading a book <b class=\"w-now\">now</b>.",em:"📖",ans:"now",clue:"now"},
+{t:"<b class=\"w-now\">Shhh!</b> The baby is sleeping.",em:"👶",ans:"now",clue:"Shhh!"},
+{t:"The frog is jumping <b class=\"w-now\">now</b>.",em:"🐸",ans:"now",clue:"now"},
+{t:"The ducks are swimming <b class=\"w-now\">now</b>.",em:"🦆",ans:"now",clue:"now"},
+{t:"<b class=\"w-now\">Look!</b> Grandma is coming!",em:"👵",ans:"now",clue:"Look!"},
+{t:"The horse is eating <b class=\"w-now\">now</b>.",em:"🐴",ans:"now",clue:"now"},
+{t:"The dog is running <b class=\"w-now\">now</b>.",em:"🐕💨",ans:"now",clue:"now"},
+{t:"The children are singing <b class=\"w-now\">now</b>.",em:"🧒🎵",ans:"now",clue:"now"},
+{t:"<b class=\"w-now\">Look!</b> It is raining now.",em:"🌧️☔",ans:"now",clue:"Look!"},
+{t:"<b class=\"w-later\">Tomorrow</b>, we are going to school.",em:"🎒",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Tomorrow</b>, Dad is making dinner.",em:"🍽️",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, we are visiting Grandma.",em:"👵",ans:"later",clue:"Next week"},
+{t:"<b class=\"w-later\">Tomorrow</b>, we are playing in the park.",em:"🌳",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, Ollie is flying to the Magic Mountain.",em:"🦉⛰️",ans:"later",clue:"Next week"},
+{t:"<b class=\"w-later\">Tomorrow</b>, Mom is buying a cake.",em:"🛍️",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, we are opening the big present.",em:"🎁",ans:"later",clue:"Next week"},
+{t:"<b class=\"w-later\">Tomorrow</b>, we are riding our bikes.",em:"🚲",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Tomorrow</b>, the fox is making soup.",em:"🍲",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, we are watching a movie.",em:"🎬",ans:"later",clue:"Next week"},
+{t:"<b class=\"w-later\">Tomorrow</b>, the girl is drawing a star.",em:"🖍️",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, we are swimming in the sea.",em:"🌊",ans:"later",clue:"Next week"},
+{t:"<b class=\"w-later\">Tomorrow</b>, Grandpa is making breakfast.",em:"🥞",ans:"later",clue:"Tomorrow"},
+{t:"<b class=\"w-later\">Next week</b>, we are finding the magic key.",em:"🔑",ans:"later",clue:"Next week"},
+{t:"<b class=\"w-later\">Next week</b>, we are planting a tree.",em:"🌱",ans:"later",clue:"Next week"}
+];
+
+/* Stage 4 — Which Way Do You Go?, 33 doors (first three are the original story doors) */
+const DOORS=[
+{em:"🐦🎵",cap:"A speech bubble says: “Listen!”",clueHtml:"<b class=\"w-now\">Listen!</b>",clueW:"Listen!",pre:"The bird ",post:" a happy song. <small>(sing)</small>",time:"NOW",opts:["is singing","are singing","is sing"],form:"is singing",vMsg:"One bird → IS, and we need -ING: singing! Try again!"},
+{em:"🦊🐰🎒",cap:"Sunrise. Backpacks ready!",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"the fox and the rabbit ",post:" to the river. <small>(walk)</small>",time:"LATER",opts:["is walking","are walking","are walk"],form:"are walking",vMsg:"Two friends (fox AND rabbit) → ARE + walking! Try again!"},
+{em:"🦉😴🗺️",cap:"A speech bubble says: “Shhh!”",clueHtml:"<b class=\"w-now\">Shhh! Look!</b>",clueW:"Look!",pre:"Ollie ",post:" on the map! <small>(sleep)</small>",time:"NOW",opts:["is sleep","are sleeping","is sleeping"],form:"is sleeping",vMsg:"Ollie is one friend → IS + sleepING! Try again!"},
+{em:"👶📞",cap:"A speech bubble says: “Listen!”",clueHtml:"<b class=\"w-now\">Listen!</b>",clueW:"Listen!",pre:"The baby ",post:" . <small>(cry)</small>",time:"NOW",opts:["is crying","are crying","is cry"],form:"is crying",vMsg:"One baby → IS + cryING! Try again!"},
+{em:"🐕💨",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The dog ",post:" ! <small>(run)</small>",time:"NOW",opts:["is run","are running","is running"],form:"is running",vMsg:"One dog → IS + runNING! Try again!"},
+{em:"🐱😴",cap:"A speech bubble says: “Shhh!”",clueHtml:"<b class=\"w-now\">Shhh!</b>",clueW:"Shhh!",pre:"The cat ",post:" ! <small>(sleep)</small>",time:"NOW",opts:["is sleeping","are sleeping","is sleep"],form:"is sleeping",vMsg:"One cat → IS + sleepING! Try again!"},
+{em:"☀️😎",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The sun ",post:" ! <small>(shine)</small>",time:"NOW",opts:["is shine","are shining","is shining"],form:"is shining",vMsg:"One sun → IS + shinING! Try again!"},
+{em:"🐦🐦🎶",cap:"A speech bubble says: “Listen!”",clueHtml:"<b class=\"w-now\">Listen!</b>",clueW:"Listen!",pre:"The birds ",post:" ! <small>(sing)</small>",time:"NOW",opts:["is singing","are singing","are sing"],form:"are singing",vMsg:"TWO birds → ARE + singing! Try again!"},
+{em:"🐸✨",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The frog ",post:" ! <small>(jump)</small>",time:"NOW",opts:["is jump","are jumping","is jumping"],form:"is jumping",vMsg:"One frog → IS + jumpING! Try again!"},
+{em:"👦👦😴",cap:"A speech bubble says: “Shhh!”",clueHtml:"<b class=\"w-now\">Shhh!</b>",clueW:"Shhh!",pre:"The boys ",post:" ! <small>(sleep)</small>",time:"NOW",opts:["is sleeping","are sleep","are sleeping"],form:"are sleeping",vMsg:"Two boys → ARE + sleepING! Try again!"},
+{em:"🦆💧",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The duck ",post:" in the river! <small>(swim)</small>",time:"NOW",opts:["are swimming","is swimming","is swim"],form:"is swimming",vMsg:"One duck → IS + swimMING! Try again!"},
+{em:"👧🎵",cap:"A speech bubble says: “Listen!”",clueHtml:"<b class=\"w-now\">Listen!</b>",clueW:"Listen!",pre:"The girl ",post:" ! <small>(dance)</small>",time:"NOW",opts:["is dancing","are dancing","is dance"],form:"is dancing",vMsg:"One girl → IS + dancING! Try again!"},
+{em:"👩‍🏫✏️",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The teacher ",post:" ! <small>(write)</small>",time:"NOW",opts:["is write","is writing","are writing"],form:"is writing",vMsg:"One teacher → IS + writING! Try again!"},
+{em:"🌧️☔",cap:"A speech bubble says: “Listen!”",clueHtml:"<b class=\"w-now\">Listen!</b>",clueW:"Listen!",pre:"The rain ",post:" ! <small>(fall)</small>",time:"NOW",opts:["is falling","are falling","is fall"],form:"is falling",vMsg:"The rain is ONE thing → IS + fallING! Try again!"},
+{em:"🐰🥕",cap:"A speech bubble says: “Shhh!”",clueHtml:"<b class=\"w-now\">Shhh!</b>",clueW:"Shhh!",pre:"The rabbit ",post:" ! <small>(eat)</small>",time:"NOW",opts:["is eating","are eating","is eat"],form:"is eating",vMsg:"One rabbit → IS + eatING! Try again!"},
+{em:"🧒🧒⚽",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The children ",post:" ! <small>(play)</small>",time:"NOW",opts:["is playing","are playing","are play"],form:"are playing",vMsg:"Children = many friends → ARE + playING! Try again!"},
+{em:"📞✨",cap:"A speech bubble says: “Listen!”",clueHtml:"<b class=\"w-now\">Listen!</b>",clueW:"Listen!",pre:"The phone ",post:" ! <small>(ring)</small>",time:"NOW",opts:["is ring","are ringing","is ringing"],form:"is ringing",vMsg:"One phone → IS + ringING! Try again!"},
+{em:"🎈☁️",cap:"A speech bubble says: “Look!”",clueHtml:"<b class=\"w-now\">Look!</b>",clueW:"Look!",pre:"The balloon ",post:" up! <small>(fly)</small>",time:"NOW",opts:["is flying","are flying","is fly"],form:"is flying",vMsg:"One balloon → IS + flyING! Try again!"},
+{em:"👧🎒🏫",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"the girl ",post:" to school. <small>(walk)</small>",time:"LATER",opts:["are walking","is walking","is walk"],form:"is walking",vMsg:"One girl → IS + walkING! Try again!"},
+{em:"🛋️🎬",cap:"Movie night — tomorrow!",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"we ",post:" a movie. <small>(watch)</small>",time:"LATER",opts:["are watch","is watching","are watching"],form:"are watching",vMsg:"We = 2+ friends → ARE + watchING! Try again!"},
+{em:"👵🎂",cap:"The calendar says: “Next week”",clueHtml:"<b class=\"w-later\">Next week</b>",clueW:"Next week",pre:"we ",post:" Grandma. <small>(visit)</small>",time:"LATER",opts:["is visiting","are visiting","are visit"],form:"are visiting",vMsg:"We → ARE + visITING! Try again!"},
+{em:"🐦🏠",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"the birds ",post:" home. <small>(fly)</small>",time:"LATER",opts:["is flying","are fly","are flying"],form:"are flying",vMsg:"Birds = 2+ friends → ARE + flyING! Try again!"},
+{em:"🦉⭐",cap:"The calendar says: “Next week”",clueHtml:"<b class=\"w-later\">Next week</b>",clueW:"Next week",pre:"Ollie ",post:" a big star. <small>(draw)</small>",time:"LATER",opts:["is drawing","are drawing","is draw"],form:"is drawing",vMsg:"Ollie is one owl → IS + drawING! Try again!"},
+{em:"🦊🍲",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"the fox ",post:" soup. <small>(make)</small>",time:"LATER",opts:["is make","are making","is making"],form:"is making",vMsg:"One fox → IS + makING! Try again!"},
+{em:"🌊🏊",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"we ",post:" in the sea. <small>(swim)</small>",time:"LATER",opts:["is swimming","are swim","are swimming"],form:"are swimming",vMsg:"We → ARE + swimMING! Try again!"},
+{em:"🧒🌱",cap:"The calendar says: “Next week”",clueHtml:"<b class=\"w-later\">Next week</b>",clueW:"Next week",pre:"the children ",post:" a tree. <small>(plant)</small>",time:"LATER",opts:["are planting","is planting","are plant"],form:"are planting",vMsg:"Children = many friends → ARE + plantING! Try again!"},
+{em:"🐱🛏️",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"the cat ",post:" on MY bed! <small>(sleep)</small>",time:"LATER",opts:["is sleeping","are sleeping","is sleep"],form:"is sleeping",vMsg:"One cat → IS + sleepING! Try again!"},
+{em:"🚪✨",cap:"The calendar says: “Next week”",clueHtml:"<b class=\"w-later\">Next week</b>",clueW:"Next week",pre:"we ",post:" the magic door. <small>(open)</small>",time:"LATER",opts:["is opening","are opening","are open"],form:"are opening",vMsg:"We → ARE + openING! Try again!"},
+{em:"👨🚗",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"Dad ",post:" his car. <small>(wash)</small>",time:"LATER",opts:["is washing","are washing","is wash"],form:"is washing",vMsg:"Dad is one friend → IS + washING! Try again!"},
+{em:"⚽🥅",cap:"The calendar says: “Next week”",clueHtml:"<b class=\"w-later\">Next week</b>",clueW:"Next week",pre:"we ",post:" football. <small>(play)</small>",time:"LATER",opts:["is playing","are play","are playing"],form:"are playing",vMsg:"We → ARE + playING! Try again!"},
+{em:"🧑‍🤝‍🧑🌳",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"my friends ",post:" to the park. <small>(walk)</small>",time:"LATER",opts:["is walking","are walking","are walk"],form:"are walking",vMsg:"My friends = 2+ → ARE + walkING! Try again!"},
+{em:"👵🍪",cap:"The calendar says: “Next week”",clueHtml:"<b class=\"w-later\">Next week</b>",clueW:"Next week",pre:"Grandma ",post:" cookies. <small>(make)</small>",time:"LATER",opts:["are making","is making","is make"],form:"is making",vMsg:"Grandma is one friend → IS + makING! Try again!"},
+{em:"🗺️🚀",cap:"The calendar says: “Tomorrow”",clueHtml:"<b class=\"w-later\">Tomorrow</b>",clueW:"Tomorrow",pre:"we ",post:" the treasure map! <small>(follow)</small>",time:"LATER",opts:["is following","are following","are follow"],form:"are following",vMsg:"We → ARE + followING! Try again!"}
+];
+
+/* ================= APP ================= */
+const ORDER=["s11","s12","s13","s15","s21","s22","s25","s31","s32","s33","s41","s42","s45"];
+const PLAN_AT=ORDER.indexOf("s31");
+let cur=0;
+const dots=$("#dots");
+ORDER.forEach(()=>{const d=document.createElement("span");d.className="dot";dots.appendChild(d);});
+function go(i){
+  cur=i;
+  $$(".screen").forEach(s=>s.classList.remove("on"));
+  const el=document.getElementById(ORDER[i]); el.classList.add("on");
+  document.body.classList.toggle("night", i<PLAN_AT);
+  document.body.classList.toggle("plan", i>=PLAN_AT);
+  [...dots.children].forEach((d,k)=>{d.className="dot"+(k<i?" done":k===i?" cur":"");});
+  window.scrollTo({top:0});
+}
+$$("[data-next]").forEach(b=>b.addEventListener("click",()=>{ if(cur<ORDER.length-1) go(cur+1); }));
+
+/* ---------- stars ---------- */
+let stars=0;
+function addStars(n){
+  stars+=n; $("#starCount").textContent=stars;
+  const b=$("#starBox"); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+}
+
+/* ---------- sound ---------- */
+let muted=false, ctx=null;
+function tone(f,t,dur,delay){
+  if(muted)return;
+  try{
+    ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=t; o.frequency.value=f; o.connect(g); g.connect(ctx.destination);
+    const s=ctx.currentTime+(delay||0);
+    g.gain.setValueAtTime(0.0001,s); g.gain.exponentialRampToValueAtTime(0.18,s+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,s+dur);
+    o.start(s); o.stop(s+dur+0.05);
+  }catch(e){}
+}
+const sfx={
+  ok(){tone(660,"triangle",.14);tone(880,"triangle",.2,.12);},
+  wrong(){tone(180,"sawtooth",.22);},
+  door(){tone(523,"triangle",.12);tone(659,"triangle",.12,.1);tone(784,"triangle",.25,.2);},
+  win(){[523,659,784,1047].forEach((f,k)=>tone(f,"triangle",.3,k*0.16));}
+};
+$("#soundBtn").addEventListener("click",e=>{muted=!muted;e.currentTarget.textContent=muted?"🔇":"🔊";});
+
+/* ---------- confetti ---------- */
+function burst(n){
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const ems=["⭐","✨","🎉","💛","🌟"];
+  for(let i=0;i<n;i++){
+    const s=document.createElement("span");
+    s.className="confetti"; s.textContent=ems[Math.floor(Math.random()*ems.length)];
+    s.style.left=Math.random()*100+"vw";
+    s.style.animationDuration=(1.6+Math.random()*1.4)+"s";
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),3200);
+  }
+}
+
+/* ---------- shared light drag: tap=select, drag onto zone=place ---------- */
+function dragify(el,cfg){
+  el.addEventListener("pointerdown",e=>{
+    if(!cfg.isPickable||!cfg.isPickable())return;
+    if(e.pointerType==="mouse"&&e.button!==0)return;
+    e.preventDefault();
+    const sx=e.clientX, sy=e.clientY; let dragging=false;
+    const r=el.getBoundingClientRect();
+    const ghost=el.cloneNode(true);
+    ghost.classList.add("ghost");
+    ghost.style.left=r.left+"px"; ghost.style.top=r.top+"px"; ghost.style.width=r.width+"px"; ghost.style.height=r.height+"px";
+    document.body.appendChild(ghost);
+    function zoneAt(x,y){
+      return cfg.zones.find(z=>{const b=z.getBoundingClientRect();return x>=b.left&&x<=b.right&&y>=b.top&&y<=b.bottom;});
+    }
+    function move(ev){
+      const dx=ev.clientX-sx, dy=ev.clientY-sy;
+      if(!dragging&&Math.hypot(dx,dy)>8){
+        dragging=true; el.classList.add("lift"); ghost.style.opacity="0.9";
+        if(cfg.onDragStart)cfg.onDragStart();
+      }
+      if(dragging)ghost.style.transform=`translate(${dx}px,${dy}px)`;
+    }
+    function up(ev){
+      window.removeEventListener("pointermove",move);
+      window.removeEventListener("pointerup",up);
+      ghost.remove(); el.classList.remove("lift");
+      if(dragging){
+        const z=zoneAt(ev.clientX,ev.clientY);
+        if(z&&cfg.onZone)cfg.onZone(z,el);
+      }else{
+        cfg.onPick();
+      }
+    }
+    window.addEventListener("pointermove",move);
+    window.addEventListener("pointerup",up);
+  });
+}
+
+/* ---------- tap Ollie (screen 1.2) ---------- */
+const ava=$("#ollieAva");
+function ollieTap(){
+  ava.classList.remove("spin"); void ava.offsetWidth; ava.classList.add("spin");
+  $("#hoo").hidden=false;
+  tone(880,"triangle",.12); tone(1175,"triangle",.18,.1);
+}
+ava.addEventListener("pointerdown",ollieTap);
+ava.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();ollieTap();}});
+
+/* ---------- STAGE 1: MCQ queue ---------- */
+(function(){
+  const prog=$("#mcqProg"), props=$("#mcqProps"), cap=$("#mcqCap"), q=$("#mcqQ"),
+        opts=$("#mcqOpts"), fbG=$("#mcqFbG"), fbB=$("#mcqFbB"), nav=$("#mcqNav");
+  let idx=0;
+  function render(){
+    const it=MCQ[idx];
+    prog.textContent="Question "+(idx+1)+" of "+MCQ.length;
+    props.textContent=it.em; cap.textContent=it.cap; q.textContent=it.q;
+    fbG.classList.remove("show"); fbB.classList.remove("show"); nav.hidden=true;
+    opts.innerHTML="";
+    it.opts.forEach(o=>{
+      const b=document.createElement("button");
+      b.className="opt";
+      b.innerHTML="<span class=\"em\">"+o[0]+"</span>"+o[1];
+      b.addEventListener("click",()=>{
+        if(b.disabled)return;
+        if(o[2]){
+          Array.from(opts.children).forEach(x=>x.disabled=true);
+          b.classList.add("ok");
+          fbB.classList.remove("show");
+          fbG.textContent=it.ok; fbG.classList.add("show");
+          addStars(10); sfx.ok(); burst(10);
+          nav.hidden=false;
+          nav.textContent = idx===MCQ.length-1 ? "To the telescope! 🔭" : "Next question ▶";
+        }else{
+          b.classList.remove("no"); void b.offsetWidth; b.classList.add("no");
+          fbG.classList.remove("show");
+          fbB.textContent=it.no; fbB.classList.add("show");
+          sfx.wrong();
+        }
+      });
+      opts.appendChild(b);
+    });
+  }
+  nav.addEventListener("click",()=>{
+    if(nav.hidden)return;
+    if(idx<MCQ.length-1){idx++;render();}
+    else go(cur+1);
+  });
+  render();
+})();
+
+/* ---------- STAGE 2: fill-the-blank queue ---------- */
+(function(){
+  const prog=$("#fillProg"), props=$("#fillProps"), cap=$("#fillCap"), say=$("#fillSay"),
+        sent=$("#fillSent"), fbG=$("#fillFbG"), fbB=$("#fillFbB"), nav=$("#fillNav");
+  const toks=$$("#s22 .token");
+  let idx=0, done=false, picked=null, blank=null;
+  function clearSel(){toks.forEach(t=>t.classList.remove("selected"));picked=null;}
+  function render(){
+    const it=FILL[idx];
+    done=false; clearSel();
+    prog.textContent="Question "+(idx+1)+" of "+FILL.length;
+    props.textContent=it.em; cap.textContent=it.cap; say.textContent=it.say;
+    fbG.classList.remove("show"); fbB.classList.remove("show"); nav.hidden=true;
+    toks.forEach(t=>t.classList.remove("locked"));
+    sent.innerHTML=it.pre+"<span class=\"blank\" id=\"fillBlank\" role=\"button\" tabindex=\"0\" aria-label=\"Place is or are here\">___</span>"+it.post;
+    blank=sent.querySelector(".blank"); blank.dataset.answer=it.ans;
+    blank.addEventListener("click",()=>{ if(picked)attempt(picked); clearSel(); });
+    blank.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&picked){e.preventDefault();attempt(picked);clearSel();} });
+  }
+  function attempt(tok){
+    if(done)return;
+    blank.textContent=tok.dataset.w;
+    if(tok.dataset.w===blank.dataset.answer){
+      done=true; blank.classList.add("good");
+      toks.forEach(t=>t.classList.add("locked"));
+      fbB.classList.remove("show");
+      fbG.textContent="YES! "+FILL[idx].cw+" → "+FILL[idx].ans.toUpperCase()+"! "+FILL[idx].cw+" "+FILL[idx].ans+FILL[idx].post.replace(/<small>.*<\/small>/,"")+" +15 stars! ⭐";
+      fbG.classList.add("show");
+      addStars(15); sfx.ok(); burst(12);
+      nav.hidden=false;
+      nav.textContent = idx===FILL.length-1 ? "NOW-check! ✅" : "Next question ▶";
+    }else{
+      blank.classList.add("bad"); sfx.wrong();
+      fbG.classList.remove("show");
+      fbB.textContent=FILL[idx].hint; fbB.classList.add("show");
+      setTimeout(()=>{ if(!done){blank.textContent="___";blank.classList.remove("bad");} },700);
+      clearSel();
+    }
+  }
+  toks.forEach(t=>dragify(t,{
+    isPickable:()=>!done&&!t.classList.contains("locked"),
+    onPick(){clearSel();picked=t;t.classList.add("selected");},
+    zones:[{getBoundingClientRect(){return blank?blank.getBoundingClientRect():{left:0,top:0,right:0,bottom:0};}}],
+    onZone(zone,el){ attempt(el); }
+  }));
+  nav.addEventListener("click",()=>{
+    if(nav.hidden)return;
+    if(idx<FILL.length-1){idx++;render();}
+    else go(cur+1);
+  });
+  render();
+})();
+
+/* ---------- STAGE 3: sorting rounds ---------- */
+(function(){
+  const tray=$("#sortTray"), baskets=$$("#s33 .basket"),
+        cnt=$("#sortCount"), roundL=$("#sortRound"),
+        fbG=$("#sortFbG"), fbB=$("#sortFbB"), nav=$("#sortNav");
+  const PER=6;
+  let doneCount=0, finished=false, picked=null;
+  function clearSel(){[...tray.querySelectorAll(".card")].forEach(c=>c.classList.remove("selected"));picked=null;}
+  function attempt(card,zone){
+    if(card.dataset.done==="1")return;
+    if(card.dataset.a===zone.dataset.a){
+      card.dataset.done="1"; card.classList.remove("selected"); picked=null;
+      zone.querySelector(".cardsin").appendChild(card);
+      doneCount++; cnt.textContent=doneCount+"/"+SORT.length;
+      sfx.ok(); burst(8);
+      fbB.classList.remove("show");
+      fbG.textContent="YES! Can you see “"+card.dataset.clue+"”? "+(card.dataset.ans==="now"?"NOW!":"That means LATER!")+" +5 stars! ⭐";
+      fbG.classList.add("show");
+      addStars(5);
+      if(doneCount===SORT.length){
+        finished=true;
+        addStars(30);
+        fbG.textContent="PERFECT SORTING! All "+SORT.length+" cards! +30 stars! ⭐⭐⭐";
+        burst(30);
+        nav.hidden=false;
+      }else if(doneCount%PER===0){
+        setTimeout(()=>{ if(!finished) renderRound(); },900);
+      }
+    }else{
+      card.classList.remove("selected"); card.classList.add("no"); picked=null;
+      setTimeout(()=>card.classList.remove("no"),500);
+      fbG.classList.remove("show");
+      fbB.textContent="Look at the clue word — “"+card.dataset.clue+"”! Try again!";
+      fbB.classList.add("show");
+      sfx.wrong();
+    }
+  }
+  function renderRound(){
+    clearSel();
+    const round=Math.floor(doneCount/PER);
+    roundL.textContent="Round "+(round+1)+" of "+(SORT.length/PER);
+    fbG.classList.remove("show"); fbB.classList.remove("show");
+    tray.innerHTML="";
+    SORT.slice(round*PER,round*PER+PER).forEach(it=>{
+      const c=document.createElement("button");
+      c.className="card";
+      c.dataset.a=it.ans; c.dataset.clue=it.clue;
+      c.innerHTML="<span class=\"em\">"+it.em+"</span>"+it.t;
+      dragify(c,{
+        isPickable:()=>!finished&&c.dataset.done!=="1",
+        onPick(){
+          const was=c.classList.contains("selected");
+          clearSel();
+          if(!was){picked=c;c.classList.add("selected");}
+        },
+        onDragStart(){clearSel();},
+        zones:baskets,
+        onZone(z,el){ attempt(el,z); }
+      });
+      tray.appendChild(c);
+    });
+  }
+  baskets.forEach(b=>b.addEventListener("click",()=>{ if(picked)attempt(picked,b); }));
+  nav.addEventListener("click",()=>{ if(!nav.hidden) go(cur+1); });
+  renderRound();
+})();
+
+/* ---------- STAGE 4: door queue ---------- */
+(function(){
+  const prog=$("#doorProg"), box=$("#doorBox"), props=$("#doorProps"), cap=$("#doorCap"),
+        sent=$("#doorSent"), tdoors=$$("#s42 .tdoor"), verbsBox=$("#doorVerbs"),
+        fbT=$("#doorFbT"), fbV=$("#doorFbV"), fbG=$("#doorFbG"), nav=$("#doorNav");
+  let idx=0, timeOK=false, done=false, stars4=0;
+  function render(){
+    const it=DOORS[idx];
+    timeOK=false; done=false;
+    const postClean=it.post.replace(/^\s+([.!])/,"$1");
+    prog.innerHTML="Door "+(idx+1)+" of "+DOORS.length+" · <span class=\"meter\">⭐ × "+stars4+"</span>";
+    box.textContent="🚪"; box.classList.remove("open");
+    props.textContent=it.em; cap.textContent=it.cap;
+    sent.innerHTML=it.clueHtml+" "+it.pre+"<span class=\"blank\" style=\"min-width:80px;cursor:default\">___</span>"+postClean;
+    tdoors.forEach(t=>{t.disabled=false;t.classList.remove("ok","no");});
+    verbsBox.hidden=true; verbsBox.innerHTML="";
+    [fbT,fbV,fbG].forEach(f=>f.classList.remove("show"));
+    nav.hidden=true;
+  }
+  tdoors.forEach(b=>b.addEventListener("click",()=>{
+    if(timeOK||done)return;
+    [fbT,fbV,fbG].forEach(f=>f.classList.remove("show"));
+    const it=DOORS[idx];
+    if(b.dataset.t===it.time){
+      timeOK=true; b.classList.add("ok");
+      tdoors.forEach(x=>{if(x!==b)x.disabled=true;});
+      it.opts.forEach(v=>{
+        const vb=document.createElement("button");
+        vb.className="verb"; vb.textContent=v;
+        vb.addEventListener("click",()=>{
+          if(!timeOK||done)return;
+          if(v===it.form){
+            done=true; vb.classList.add("ok");
+            Array.from(verbsBox.children).forEach(x=>{if(x!==vb)x.disabled=true;});
+            fbT.classList.remove("show"); fbV.classList.remove("show");
+            fbG.textContent="DING! Door "+(idx+1)+" OPENS! "+it.pre+it.form+it.post.replace(/^\s+([.!])/,"$1").replace("<small>","— <small>")+" +1 ⭐";
+            fbG.classList.add("show");
+            box.textContent="🌟"; box.classList.add("open");
+            stars4++; addStars(1); sfx.door(); burst(16);
+            const m=$("#meter"); if(m)m.textContent="⭐ × "+stars4;
+            nav.hidden=false;
+            nav.textContent = idx===DOORS.length-1 ? "OPEN THE TREASURE! 🌟" : "Next door ▶";
+          }else{
+            vb.classList.remove("no"); void vb.offsetWidth; vb.classList.add("no");
+            fbV.textContent=it.vMsg; fbV.classList.add("show");
+            sfx.wrong();
+          }
+        });
+        verbsBox.appendChild(vb);
+      });
+      verbsBox.hidden=false;
+      sfx.ok();
+    }else{
+      b.classList.remove("no"); void b.offsetWidth; b.classList.add("no");
+      fbT.textContent = it.time==="NOW"
+        ? "“"+it.clueW+"” means RIGHT NOW! Try the NOW door!"
+        : "“"+it.clueW+"” is our plan — that's LATER! Try again!";
+      fbT.classList.add("show");
+      sfx.wrong();
+    }
+  }));
+  nav.addEventListener("click",()=>{
+    if(nav.hidden)return;
+    if(idx<DOORS.length-1){idx++;render();}
+    else go(cur+1);
+  });
+  render();
+})();
+
+/* ---------- victory ---------- */
+$("#replay").addEventListener("click",()=>location.reload());
+new MutationObserver(()=>{
+  if($("#s45").classList.contains("on")){
+    $("#finalStars").textContent="You collected "+stars+" stars! Amazing! 🎉";
+    burst(50); sfx.win();
+  }
+}).observe($("#s45"),{attributes:true,attributeFilter:["class"]});
+
+/* ---------- decorative twinkles ---------- */
+$$(".stars-bg").forEach(box=>{
+  for(let i=0;i<16;i++){
+    const s=document.createElement("i");
+    s.textContent="✦";
+    s.style.left=Math.random()*100+"%"; s.style.top=Math.random()*70+"%";
+    s.style.animationDelay=(Math.random()*2.6)+"s";
+    box.appendChild(s);
+  }
+});
+
+/* ---------- start ---------- */
+go(0);
+})();
+</script>
+</body>
+</html>
